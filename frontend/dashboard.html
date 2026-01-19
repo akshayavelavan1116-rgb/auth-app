@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #34495e;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    main {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    .dashboard-box {
+      background: white;
+      width: 600px;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    .card {
+      background: #ecf0f1;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    .card h3 {
+      margin: 0 0 10px 0;
+      color: #2c3e50;
+    }
+    button {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="header-welcome">Welcome!</h1>
+  </header>
+
+  <main>
+    <div class="dashboard-box">
+      <div class="card">
+        <h3>User Info</h3>
+        <p id="user-email">Loading...</p>
+        <p id="user-id"></p>
+      </div>
+
+      <div class="card">
+        <h3>Stats</h3>
+        <p>You have 0 new messages.</p>
+        <p>Tasks completed: 0</p>
+      </div>
+
+      <div class="card">
+        <h3>Actions</h3>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    async function loadDashboard() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:5000/dashboard", {
+          method: "GET",
+          headers: {
+            "Authorization": "Bearer " + token
+          }
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          document.getElementById("header-welcome").innerText = "Error";
+          document.getElementById("user-email").innerText = data.message || "Something went wrong";
+          return;
+        }
+
+        // Show email in header and user info card
+        document.getElementById("header-welcome").innerText = `Welcome, ${data.message.split("!")[0].replace("Welcome ", "")}!`;
+        document.getElementById("user-email").innerText = `Email: ${data.message.split("!")[0].replace("Welcome ", "")}`;
+        document.getElementById("user-id").innerText = `ID: ${data.userId || "N/A"}`;
+
+      } catch (err) {
+        document.getElementById("header-welcome").innerText = "Error";
+        document.getElementById("user-email").innerText = "Server unreachable";
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("token");
+      window.location.href = "index.html";
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
